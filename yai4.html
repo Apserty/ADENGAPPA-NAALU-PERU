@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insta Aid Insurance - Claim Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+        }
+        
+        .hero-bg {
+            background: linear-gradient(rgba(30, 64, 175, 0.8), rgba(59, 130, 246, 0.8)), 
+                        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #1d4ed8, #1e40af);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+        
+        .status-badge {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, #10b981, #059669);
+            animation: progress-fill 2s ease-out;
+        }
+        
+        @keyframes progress-fill {
+            from { width: 0%; }
+            to { width: var(--progress-width); }
+        }
+
+        .auth-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .captcha-box {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 18px;
+            letter-spacing: 2px;
+            text-align: center;
+            user-select: none;
+            cursor: pointer;
+        }
+
+        .otp-input {
+            width: 50px;
+            height: 50px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Splash Screen -->
+    <div id="splashScreen" class="fixed inset-0 gradient-bg flex items-center justify-center z-[100] transition-opacity duration-1000 ease-out">
+        <div class="text-white text-center animate-pulse">
+            <div class="bg-white bg-opacity-20 p-4 rounded-full inline-block mb-4">
+                <svg class="w-20 h-20" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2L2 7v10c0 5.55 3.84 9.74 9 11 5.16-1.26 9-5.45 9-11V7l-10-5z"/>
+                </svg>
+            </div>
+            <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight">Insta Aid Insurance</h1>
+            <p class="text-xl md:text-2xl mt-2 font-medium opacity-80">Claim Portal</p>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+            <div class="p-8">
+                <div class="flex justify-between items-center mb-6">
+                    <div class="text-center flex-1">
+                        <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2L2 7v10c0 5.55 3.84 9.74 9 11 5.16-1.26 9-5.45 9-11V7l-10-5z"/>
+                            </svg>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-900">Welcome Back</h2>
+                        <p class="text-gray-600 mt-2">Sign in to your Insta Aid Insurance account</p>
+                    </div>
+                    <button id="closeLoginModal" class="text-gray-400 hover:text-gray-600 ml-4">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <form id="loginForm" class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                        <div class="flex">
+                            <select id="loginCountryCode" class="px-3 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 text-sm">
+                                <option value="+1">🇺🇸 +1</option>
+                                <option value="+44">🇬🇧 +44</option>
+                                <option value="+91">🇮🇳 +91</option>
+                                <option value="+86">🇨🇳 +86</option>
+                                <option value="+81">🇯🇵 +81</option>
+                                <option value="+49">🇩🇪 +49</option>
+                                <option value="+33">🇫🇷 +33</option>
+                                <option value="+39">🇮🇹 +39</option>
+                                <option value="+34">🇪🇸 +34</option>
+                                <option value="+7">🇷🇺 +7</option>
+                                <option value="+55">🇧🇷 +55</option>
+                                <option value="+52">🇲🇽 +52</option>
+                                <option value="+61">🇦🇺 +61</option>
+                                <option value="+82">🇰🇷 +82</option>
+                                <option value="+65">🇸🇬 +65</option>
+                                <option value="+971">🇦🇪 +971</option>
+                                <option value="+966">🇸🇦 +966</option>
+                                <option value="+27">🇿🇦 +27</option>
+                                <option value="+234">🇳🇬 +234</option>
+                                <option value="+20">🇪🇬 +20</option>
+                            </select>
+                            <input type="tel" id="loginPhone" class="flex-1 px-4 py-3 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent border-l-0" placeholder="555 123 4567" required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                        <input type="password" id="loginPassword" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter your password" required>
+                    </div>
+
+                    <button type="submit" class="w-full btn-primary text-white py-3 rounded-lg font-semibold">
+                        Sign In
+                    </button>
+                </form>
+
+                <div class="mt-6 text-center">
+                    <p class="text-gray-600">Don't have an account? 
+                        <button id="showSignupFromLogin" class="text-blue-600 hover:text-blue-700 font-medium">Sign up</button>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Signup Modal -->
+    <div id="signupModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden max-h-screen overflow-y-auto">
+            <div class="p-8">
+                <div class="flex justify-between items-center mb-6">
+                    <div class="text-center flex-1">
+                        <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-900">Create Account</h2>
+                        <p class="text-gray-600 mt-2">Join Insta Aid Insurance today</p>
+                    </div>
+                    <button id="closeSignupModal" class="text-gray-400 hover:text-gray-600 ml-4">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <form id="signupForm" class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                        <input type="text" id="signupName" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="John Doe" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
+                        <input type="email" id="signupEmail" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="john@example.com" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
+                        <div class="flex">
+                            <select id="signupCountryCode" class="px-3 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 text-sm">
+                                <option value="+1">🇺🇸 +1</option>
+                                <option value="+44">🇬🇧 +44</option>
+                                <option value="+91">🇮🇳 +91</option>
+                                <option value="+86">🇨🇳 +86</option>
+                                <option value="+81">🇯🇵 +81</option>
+                                <option value="+49">🇩🇪 +49</option>
+                                <option value="+33">🇫🇷 +33</option>
+                                <option value="+39">🇮🇹 +39</option>
+                                <option value="+34">🇪🇸 +34</option>
+                                <option value="+7">🇷🇺 +7</option>
+                                <option value="+55">🇧🇷 +55</option>
+                                <option value="+52">🇲🇽 +52</option>
+                                <option value="+61">🇦🇺 +61</option>
+                                <option value="+82">🇰🇷 +82</option>
+                                <option value="+65">🇸🇬 +65</option>
+                                <option value="+971">🇦🇪 +971</option>
+                                <option value="+966">🇸🇦 +966</option>
+                                <option value="+27">🇿🇦 +27</option>
+                                <option value="+234">🇳🇬 +234</option>
+                                <option value="+20">🇪🇬 +20</option>
+                                <option value="CA">🇨🇦 Canada</option>
+                                <option value="NL">🇳🇱 Netherlands</option>
+                                <option value="SE">🇸🇪 Sweden</option>
+                                <option value="NO">🇳🇴 Norway</option>
+                                <option value="DK">🇩🇰 Denmark</option>
+                                <option value="FI">🇫🇮 Finland</option>
+                                <option value="CH">🇨🇭 Switzerland</option>
+                                <option value="AT">🇦🇹 Austria</option>
+                                <option value="BE">🇧🇪 Belgium</option>
+                                <option value="PT">🇵🇹 Portugal</option>
+                                <option value="GR">🇬🇷 Greece</option>
+                                <option value="PL">🇵🇱 Poland</option>
+                                <option value="CZ">🇨🇿 Czech Republic</option>
+                                <option value="HU">🇭🇺 Hungary</option>
+                                <option value="RO">🇷🇴 Romania</option>
+                                <option value="BG">🇧🇬 Bulgaria</option>
+                                <option value="HR">🇭🇷 Croatia</option>
+                                <option value="SK">🇸🇰 Slovakia</option>
+                                <option value="SI">🇸🇮 Slovenia</option>
+                                <option value="EE">🇪🇪 Estonia</option>
+                                <option value="LV">🇱🇻 Latvia</option>
+                                <option value="LT">🇱🇹 Lithuania</option>
+                                <option value="IE">🇮🇪 Ireland</option>
+                                <option value="IS">🇮🇸 Iceland</option>
+                                <option value="LU">🇱🇺 Luxembourg</option>
+                                <option value="MT">🇲🇹 Malta</option>
+                                <option value="CY">🇨🇾 Cyprus</option>
+                            </select>
+                            <input type="tel" id="signupPhone" class="flex-1 px-4 py-3 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent border-l-0" placeholder="555 123 4567" required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Country *</label>
+                        <select id="signupCountry" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                            <option value="">Select your country</option>
+                            <option value="US">🇺🇸 United States</option>
+                            <option value="GB">🇬🇧 United Kingdom</option>
+                            <option value="IN">🇮🇳 India</option>
+                            <option value="CN">🇨🇳 China</option>
+                            <option value="JP">🇯🇵 Japan</option>
+                            <option value="DE">🇩🇪 Germany</option>
+                            <option value="FR">🇫🇷 France</option>
+                            <option value="IT">🇮🇹 Italy</option>
+                            <option value="ES">🇪🇸 Spain</option>
+                            <option value="RU">🇷🇺 Russia</option>
+                            <option value="BR">🇧🇷 Brazil</option>
+                            <option value="MX">🇲🇽 Mexico</option>
+                            <option value="AU">🇦🇺 Australia</option>
+                            <option value="KR">🇰🇷 South Korea</option>
+                            <option value="SG">🇸🇬 Singapore</option>
+                            <option value="AE">🇦🇪 United Arab Emirates</option>
+                            <option value="SA">🇸🇦 Saudi Arabia</option>
+                            <option value="ZA">🇿🇦 South Africa</option>
+                            <option value="NG">🇳🇬 Nigeria</option>
+                            <option value="EG">🇪🇬 Egypt</option>
+                            <option value="CA">🇨🇦 Canada</option>
+                            <option value="NL">🇳🇱 Netherlands</option>
+                            <option value="SE">🇸🇪 Sweden</option>
+                            <option value="NO">🇳🇴 Norway</option>
+                            <option value="DK">🇩🇰 Denmark</option>
+                            <option value="FI">🇫🇮 Finland</option>
+                            <option value="CH">🇨🇭 Switzerland</option>
+                            <option value="AT">🇦🇹 Austria</option>
+                            <option value="BE">🇧🇪 Belgium</option>
+                            <option value="PT">🇵🇹 Portugal</option>
+                            <option value="GR">🇬🇷 Greece</option>
+                            <option value="PL">🇵🇱 Poland</option>
+                            <option value="CZ">🇨🇿 Czech Republic</option>
+                            <option value="HU">🇭🇺 Hungary</option>
+                            <option value="RO">🇷🇴 Romania</option>
+                            <option value="BG">🇧🇬 Bulgaria</option>
+                            <option value="HR">🇭🇷 Croatia</option>
+                            <option value="SK">🇸🇰 Slovakia</option>
+                            <option value="SI">🇸🇮 Slovenia</option>
+                            <option value="EE">🇪🇪 Estonia</option>
+                            <option value="LV">🇱🇻 Latvia</option>
+                            <option value="LT">🇱🇹 Lithuania</option>
+                            <option value="IE">🇮🇪 Ireland</option>
+                            <option value="IS">🇮🇸 Iceland</option>
+                            <option value="LU">🇱🇺 Luxembourg</option>
+                            <option value="MT">🇲🇹 Malta</option>
+                            <option value="CY">🇨🇾 Cyprus</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Address *</label>
+                        <textarea id="signupAddress" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter your complete address including street, city, state/province, and postal code" required></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Password *</label>
+                        <input type="password" id="signupPassword" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Create a strong password" required>
+                    </div>
+
+                    <!-- Captcha -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Captcha Verification *</label>
+                        <div class="flex items-center space-x-4">
+                            <div id="captchaDisplay" class="captcha-box px-4 py-3 rounded-lg flex-1" onclick="generateCaptcha()">
+                                <!-- Captcha will be generated here -->
+                            </div>
+                            <button type="button" onclick="generateCaptcha()" class="p-3 border border-gray-300 rounded-lg hover:bg-gray-50">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <input type="text" id="captchaInput" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mt-2" placeholder="Enter captcha code" required>
+                    </div>
+
+                    <button type="submit" class="w-full btn-primary text-white py-3 rounded-lg font-semibold">
+                        Create Account
+                    </button>
+                </form>
+
+                <div class="mt-6 text-center">
+                    <p class="text-gray-600">Already have an account? 
+                        <button id="showLoginFromSignup" class="text-blue-600 hover:text-blue-700 font-medium">Sign in</button>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- OTP Verification Modal -->
+    <div id="otpModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+            <div class="p-8">
+                <div class="flex justify-between items-center mb-6">
+                    <div class="text-center flex-1">
+                        <div class="bg-yellow-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-yellow-600" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                            </svg>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-900">Verify Phone Number</h2>
+                        <p class="text-gray-600 mt-2">Enter the 6-digit code sent to <span id="otpPhoneDisplay" class="font-medium"></span></p>
+                    </div>
+                    <button id="closeOtpModal" class="text-gray-400 hover:text-gray-600 ml-4">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <form id="otpForm" class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-4 text-center">Enter OTP Code</label>
+                        <div class="flex justify-center space-x-2">
+                            <input type="text" class="otp-input border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" maxlength="1" pattern="[0-9]">
+                            <input type="text" class="otp-input border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" maxlength="1" pattern="[0-9]">
+                            <input type="text" class="otp-input border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" maxlength="1" pattern="[0-9]">
+                            <input type="text" class="otp-input border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" maxlength="1" pattern="[0-9]">
+                            <input type="text" class="otp-input border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" maxlength="1" pattern="[0-9]">
+                            <input type="text" class="otp-input border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" maxlength="1" pattern="[0-9]">
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <p class="text-sm text-gray-600">Didn't receive the code? 
+                            <button type="button" id="resendOtp" class="text-blue-600 hover:text-blue-700 font-medium">Resend OTP</button>
+                        </p>
+                        <p class="text-xs text-gray-500 mt-2">Code expires in <span id="otpTimer" class="font-medium">05:00</span></p>
+                    </div>
+
+                    <button type="submit" class="w-full btn-primary text-white py-3 rounded-lg font-semibold">
+                        Verify & Continue
+                    </button>
+                </form>
+
+                <div class="mt-6 text-center">
+                    <button id="backToSignup" class="text-gray-600 hover:text-gray-700 font-medium">← Back to Sign Up</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Main Dashboard -->
+    <div id="mainDashboard" class="hidden">
+        <!-- Header -->
+        <header class="gradient-bg text-white shadow-lg">
+            <div class="container mx-auto px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="bg-white bg-opacity-20 p-2 rounded-lg">
+                            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2L2 7v10c0 5.55 3.84 9.74 9 11 5.16-1.26 9-5.45 9-11V7l-10-5z"/>
+                            </svg>
+                        </div>
+                        <h1 class="text-2xl font-bold">Insta Aid Insurance</h1>
+                    </div>
+                    
+                    <nav class="hidden md:flex items-center space-x-8">
+                        <a href="#" class="hover:text-blue-200 transition-colors">Dashboard</a>
+                        <a href="#" class="hover:text-blue-200 transition-colors">Claims</a>
+                        <a href="#" class="hover:text-blue-200 transition-colors">Policies</a>
+                        <a href="#" class="hover:text-blue-200 transition-colors">Support</a>
+                    </nav>
+                    
+                    <div class="relative">
+                        <button id="profileBtn" class="flex items-center space-x-2 bg-white bg-opacity-20 px-4 py-2 rounded-full hover:bg-opacity-30 transition-all">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                            </svg>
+                            <span id="userNameDisplay">Guest User</span>
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M7 10l5 5 5-5z"/>
+                            </svg>
+                        </button>
+                        
+                        <div id="profileDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 hidden z-50">
+                            <div id="guestMenu">
+                                <button id="profileSignIn" class="block w-full text-left px-4 py-2 text-gray-800 hover:bg-blue-50 hover:text-blue-600">
+                                    <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M11 7L9.6 8.4l2.6 2.6H2v2h10.2l-2.6 2.6L11 17l5-5-5-5z"/>
+                                    </svg>
+                                    Sign In
+                                </button>
+                                <button id="profileSignUp" class="block w-full text-left px-4 py-2 text-gray-800 hover:bg-blue-50 hover:text-blue-600">
+                                    <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                    </svg>
+                                    Sign Up
+                                </button>
+                            </div>
+                            <div id="userMenu" class="hidden">
+                                <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-blue-50 hover:text-blue-600">My Profile</a>
+                                <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-blue-50 hover:text-blue-600">Settings</a>
+                                <hr class="my-2">
+                                <button id="logoutBtn" class="block w-full text-left px-4 py-2 text-gray-800 hover:bg-blue-50 hover:text-blue-600">Logout</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+    <!-- Hero Section -->
+    <section class="hero-bg text-white py-20">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-5xl font-bold mb-6">General Insurance Claim Process</h2>
+            <p class="text-xl mb-4 max-w-3xl mx-auto opacity-90">
+                You are just a single click away from a comprehensive General Insurance claim settlement
+            </p>
+            <p class="text-lg mb-8 max-w-4xl mx-auto opacity-80">
+                In our endeavour to provide you the best coverage along with a host of other value added services, our online General Insurance claims system has been designed keeping your ease in mind. With a convenient insurance claim process, you can now register your claim, upload the necessary documents and know the status instantly.
+            </p>
+            <button id="newClaimBtn" class="btn-primary text-white px-8 py-4 rounded-lg font-semibold text-lg shadow-lg">
+                <svg class="w-6 h-6 inline-block mr-2" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                </svg>
+                File New Claim
+            </button>
+        </div>
+    </section>
+
+    <!-- Information Section -->
+    <section class="bg-white py-16">
+        <div class="container mx-auto px-6">
+            <div class="max-w-4xl mx-auto">
+                <h3 class="text-3xl font-bold text-gray-900 mb-8 text-center">What You Will Need to Provide</h3>
+                <p class="text-lg text-gray-600 mb-8 text-center">
+                    When we say hassle-free, trust us to mean every syllable of it. We realize that your time is precious, particularly during an emergency. What you would have to provide is therefore minimal.
+                </p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                    <div class="bg-blue-50 p-6 rounded-xl">
+                        <h4 class="text-xl font-semibold text-blue-900 mb-4 flex items-center">
+                            <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+                            </svg>
+                            Vehicle Insurance Claims
+                        </h4>
+                        <ul class="space-y-2 text-gray-700">
+                            <li>• Vehicle Registration/Plate Number</li>
+                            <li>• Vehicle Color and Model</li>
+                            <li>• Insurance Policy Number</li>
+                            <li>• Engine and Chassis Number</li>
+                            <li>• Contact Number</li>
+                            <li>• Date and Time of Incident</li>
+                            <li>• Description and Location of Incident</li>
+                            <li>• Vehicle Inspection Address</li>
+                            <li>• Kilometer Reading</li>
+                            <li>• Staff ID (if applicable)</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-green-50 p-6 rounded-xl">
+                        <h4 class="text-xl font-semibold text-green-900 mb-4 flex items-center">
+                            <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                            </svg>
+                            Home Insurance Claims
+                        </h4>
+                        <ul class="space-y-2 text-gray-700">
+                            <li>• Property Address (Complete)</li>
+                            <li>• Insurance Policy Number</li>
+                            <li>• Contact Number</li>
+                            <li>• Date and Time of Incident</li>
+                            <li>• Description of Damage</li>
+                            <li>• Estimated Damage Value</li>
+                            <li>• Staff ID (if applicable)</li>
+                            <li>• Property Type and Size</li>
+                            <li>• Cause of Damage</li>
+                            <li>• Emergency Contact Details</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- 24/7 Support -->
+                <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-8 rounded-xl text-center">
+                    <h4 class="text-2xl font-bold mb-4">24/7 Support Available</h4>
+                    <p class="text-lg mb-4">
+                        Once you have registered your claim, you will receive a Claim Reference number from our customer support executive. You will be intimated over SMS about the exact status of your claim.
+                    </p>
+                    <div class="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-6">
+                        <div class="flex items-center">
+                            <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                            </svg>
+                            <span class="font-semibold">Toll Free: 1800-103-5858</span>
+                        </div>
+                        <div class="flex items-center">
+                            <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                            <span>Roadside Assistance Available</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-12">
+        <!-- Quick Stats - Only visible for logged-in users -->
+        <div id="userStats" class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12 hidden">
+            <div class="bg-white p-6 rounded-xl shadow-md card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm font-medium">Total Claims</p>
+                        <p class="text-3xl font-bold text-gray-900">24</p>
+                    </div>
+                    <div class="bg-blue-100 p-3 rounded-lg">
+                        <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-md card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm font-medium">Approved</p>
+                        <p class="text-3xl font-bold text-green-600">18</p>
+                    </div>
+                    <div class="bg-green-100 p-3 rounded-lg">
+                        <svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-md card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm font-medium">Pending</p>
+                        <p class="text-3xl font-bold text-yellow-600">4</p>
+                    </div>
+                    <div class="bg-yellow-100 p-3 rounded-lg">
+                        <svg class="w-6 h-6 text-yellow-600" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-md card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm font-medium">Total Payout</p>
+                        <p class="text-3xl font-bold text-blue-600" data-amount="totalPayout">$45,230</p>
+                    </div>
+                    <div class="bg-blue-100 p-3 rounded-lg">
+                        <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91s4.18 1.39 4.18 3.91c-.01 1.83-1.38 2.83-3.12 3.16z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Claims - Only visible for logged-in users -->
+        <div id="userClaims" class="bg-white rounded-xl shadow-md overflow-hidden mb-12 hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-900">Recent Claims</h3>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Claim ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Filed</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progress</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200" id="claimsTable">
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">#CLM-2024-001</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Auto Accident</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Jan 15, 2024</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-claim-amount="claim1">$8,500</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 status-badge">
+                                    Approved
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="progress-bar h-2 rounded-full" style="--progress-width: 100%; width: 100%;"></div>
+                                </div>
+                                <span class="text-xs text-gray-500 mt-1">100%</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button class="text-blue-600 hover:text-blue-900 mr-3">View</button>
+                                <button class="text-green-600 hover:text-green-900">Download</button>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">#CLM-2024-002</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Home Damage</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-50">Jan 20, 2024</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-claim-amount="claim2">$12,300</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800 status-badge">
+                                    Under Review
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="progress-bar h-2 rounded-full" style="--progress-width: 65%; width: 65%;"></div>
+                                </div>
+                                <span class="text-xs text-gray-500 mt-1">65%</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button class="text-blue-600 hover:text-blue-900 mr-3">View</button>
+                                <button class="text-gray-400">Pending</button>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">#CLM-2024-003</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Medical</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Jan 25, 2024</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-claim-amount="claim3">$2,850</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 status-badge">
+                                    Processing
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="progress-bar h-2 rounded-full" style="--progress-width: 30%; width: 30%;"></div>
+                                </div>
+                                <span class="text-xs text-gray-500 mt-1">30%</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button class="text-blue-600 hover:text-blue-900 mr-3">View</button>
+                                <button class="text-gray-400">Pending</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Quick Actions - Only visible for logged-in users -->
+        <div id="userQuickActions" class="grid grid-cols-1 md:grid-cols-3 gap-6 hidden">
+            <div class="bg-white p-6 rounded-xl shadow-md card-hover text-center">
+                <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">File New Claim</h3>
+                <p class="text-gray-600 mb-4">Start a new insurance claim with our easy-to-use form</p>
+                <button id="quickActionNewClaim" class="btn-primary text-white px-6 py-2 rounded-lg font-medium">Get Started</button>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-md card-hover text-center">
+                <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Track Claims</h3>
+                <p class="text-gray-600 mb-4">Monitor the progress of your existing claims</p>
+                <button class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">View All</button>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-md card-hover text-center">
+                <div class="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"/>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Support Center</h3>
+                <p class="text-gray-600 mb-4">Get help with your claims and policies</p>
+                <button class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">Contact Us</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Testimonials Section -->
+    <section class="bg-gray-100 py-16">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-12">
+                <h3 class="text-3xl font-bold text-gray-900 mb-4">What Our Customers Say</h3>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                    Don't just take our word for it. Here's what real customers have to say about their experience with Insta Aid Insurance.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Testimonial 1 -->
+                <div class="bg-white p-6 rounded-xl shadow-md card-hover">
+                    <div class="flex items-center mb-4">
+                        <div class="flex text-yellow-400">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                        </div>
+                        <span class="ml-2 text-sm text-gray-600">5.0</span>
+                    </div>
+                    <p class="text-gray-700 mb-4 italic">
+                        "The claim process was incredibly smooth and fast. I filed my auto accident claim online and received approval within 48 hours. The customer service team was very helpful throughout the entire process."
+                    </p>
+                    <div class="flex items-center">
+                        <div class="bg-blue-100 w-10 h-10 rounded-full flex items-center justify-center">
+                            <span class="text-blue-600 font-semibold">SM</span>
+                        </div>
+                        <div class="ml-3">
+                            <p class="font-semibold text-gray-900">Sarah Mitchell</p>
+                            <p class="text-sm text-gray-600">Auto Insurance Customer</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Testimonial 2 -->
+                <div class="bg-white p-6 rounded-xl shadow-md card-hover">
+                    <div class="flex items-center mb-4">
+                        <div class="flex">
+                            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            <svg class="w-5 h-5 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                        </div>
+                        <span class="ml-2 text-sm text-gray-600">4.0</span>
+                    </div>
+                    <p class="text-gray-700 mb-4 italic">
+                        "After a water damage incident in my home, Insta Aid Insurance handled everything professionally. The adjuster was knowledgeable, and I received my settlement quickly. The only minor issue was the initial response time, but overall very satisfied!"
+                    </p>
+                    <div class="flex items-center">
+                        <div class="bg-green-100 w-10 h-10 rounded-full flex items-center justify-center">
+                            <span class="text-green-600 font-semibold">MJ</span>
+                        </div>
+                        <div class="ml-3">
+                            <p class="font-semibold text-gray-900">Michael Johnson</p>
+                            <p class="text-sm text-gray-600">Home Insurance Customer</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Testimonial 3 -->
+                <div class="bg-white p-6 rounded-xl shadow-md card-hover">
+                    <div class="flex items-center mb-4">
+                        <div class="flex">
+                            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            <svg class="w-5 h-5 text-yellow-400" viewBox="0 0 24 24">
+                                <defs>
+                                    <linearGradient id="halfStar" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="50%" style="stop-color:#FCD34D;stop-opacity:1" />
+                                        <stop offset="50%" style="stop-color:#D1D5DB;stop-opacity:1" />
+                                    </linearGradient>
+                                </defs>
+                                <path fill="url(#halfStar)" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                        </div>
+                        <span class="ml-2 text-sm text-gray-600">4.5</span>
+                    </div>
+                    <p class="text-gray-700 mb-4 italic">
+                        "I've been with Insta Aid for 3 years now, and their service is generally very good. The online portal makes managing my policies easy, and their support team is helpful. Sometimes the wait times can be a bit long during peak hours, but overall a solid experience."
+                    </p>
+                    <div class="flex items-center">
+                        <div class="bg-purple-100 w-10 h-10 rounded-full flex items-center justify-center">
+                            <span class="text-purple-600 font-semibold">ER</span>
+                        </div>
+                        <div class="ml-3">
+                            <p class="font-semibold text-gray-900">Emily Rodriguez</p>
+                            <p class="text-sm text-gray-600">Multi-Policy Customer</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Trust Indicators -->
+            <div class="mt-12 text-center">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-8 items-center">
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-blue-600">98%</div>
+                        <div class="text-sm text-gray-600">Customer Satisfaction</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-green-600">24/7</div>
+                        <div class="text-sm text-gray-600">Support Available</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-purple-600">50K+</div>
+                        <div class="text-sm text-gray-600">Claims Processed</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-orange-600">4.9★</div>
+                        <div class="text-sm text-gray-600">Average Rating</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <div class="bg-blue-600 p-2 rounded-lg">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2L2 7v10c0 5.55 3.84 9.74 9 11 5.16-1.26 9-5.45 9-11V7l-10-5z"/>
+                            </svg>
+                        </div>
+                        <span class="text-xl font-bold">Insta Aid Insurance</span>
+                    </div>
+                    <p class="text-gray-400 mb-4">
+                        Protecting what matters most to you with comprehensive insurance solutions and exceptional customer service.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white">File a Claim</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Track Claims</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Policy Management</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Payment Center</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Find Agent</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Insurance Types</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white">Auto Insurance</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Home Insurance</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Life Insurance</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Health Insurance</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Business Insurance</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Contact Us</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                            </svg>
+                            1-800-103-5858
+                        </li>
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                            </svg>
+                            support@instaaid.com
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-4 h-4 mr-2 mt-1" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                            </svg>
+                            123 Insurance Ave, Suite 100<br>
+                            New York, NY 10001
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 Insta Aid Insurance. All rights reserved. | Privacy Policy | Terms of Service | Accessibility</p>
+            </div>
+        </div>
+    </footer>
+    </div>
+
+    <!-- New Claim Modal -->
+    <div id="claimModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-screen overflow-y-auto">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-bold text-gray-900">File New Claim</h2>
+                    <button id="closeModal" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                    </button>
+                </div>
+                <p class="text-gray-600 text-center mt-2 mb-6">Let's get your claim filed quickly and easily. Please provide the required information below, and our team will get back to you promptly.</p>
+            </div>
+            
+            <form id="claimForm" class="p-6 space-y-6">
+                <!-- Progress Bar -->
+                <div class="relative pt-1">
+                    <div class="flex mb-2 items-center justify-between">
+                        <div>
+                            <span class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-blue-600 bg-blue-200">
+                                Claim Details
+                            </span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs font-semibold inline-block text-blue-600">
+                                Step 1 of 3
+                            </span>
+                        </div>
+                    </div>
+                    <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-blue-200">
+                        <div style="width:33.33%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Claim Type *</label>
+                        <select id="claimType" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                            <option value="">Select Claim Type</option>
+                            <option value="Vehicle Insurance">Vehicle Insurance</option>
+                            <option value="Home Insurance">Home Insurance</option>
+                            <option value="Medical">Medical Insurance</option>
+                            <option value="Travel">Travel Insurance</option>
+                            <option value="Life">Life Insurance</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Policy Number *</label>
+                        <input type="text" id="policyNumber" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="POL-2024-XXXX" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Description of Incident *</label>
+                    <textarea id="incidentDescription" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Please provide a detailed description of the incident." required></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Date of Incident *</label>
+                        <input type="date" id="incidentDate" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Time of Incident *</label>
+                        <input type="time" id="incidentTime" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Estimated Claim Amount ($) *</label>
+                    <input type="number" id="claimAmount" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., 5000" min="0" required>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Upload Supporting Documents *</label>
+                    <p class="text-sm text-gray-500 mb-2">Accepted formats: PDF, JPG, PNG (Max 5MB per file)</p>
+                    <input type="file" id="supportingDocs" class="w-full text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" multiple required>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <input type="checkbox" id="termsCheck" class="rounded text-blue-600 focus:ring-2 focus:ring-blue-500" required>
+                    <label for="termsCheck" class="text-sm text-gray-700">I agree to the <a href="#" class="text-blue-600 hover:text-blue-700">Terms and Conditions</a></label>
+                </div>
+
+                <div class="flex justify-end space-x-4">
+                    <button type="button" id="cancelClaimBtn" class="bg-gray-200 text-gray-800 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn-primary text-white px-6 py-3 rounded-lg font-semibold shadow-lg">
+                        Submit Claim
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Toast Notification / Message Box -->
+    <div id="toastContainer" class="fixed top-4 right-4 z-[100] space-y-2"></div>
+    <div id="messageBox" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full mx-4 p-6 text-center">
+            <h3 id="messageBoxTitle" class="text-xl font-bold mb-2"></h3>
+            <p id="messageBoxText" class="text-gray-600 mb-4"></p>
+            <button id="messageBoxClose" class="btn-primary text-white px-6 py-2 rounded-lg font-semibold w-full">OK</button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Helper function for showing toasts
+        function showToast(message, type = 'success') {
+            const toastContainer = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `p-4 rounded-xl shadow-lg transition-all duration-300 ease-in-out transform ${type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'} -translate-y-2 opacity-0`;
+            toast.textContent = message;
+            toastContainer.prepend(toast);
+
+            setTimeout(() => {
+                toast.style.transform = 'translateY(0)';
+                toast.style.opacity = '1';
+            }, 100);
+
+            setTimeout(() => {
+                toast.style.transform = 'translateY(-20px)';
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        }
+
+        // Helper function for showing custom message box
+        function showMessageBox(title, message) {
+            const messageBox = document.getElementById('messageBox');
+            document.getElementById('messageBoxTitle').textContent = title;
+            document.getElementById('messageBoxText').textContent = message;
+            messageBox.classList.remove('hidden');
+            messageBox.classList.add('flex');
+        }
+
+        document.getElementById('messageBoxClose').addEventListener('click', () => {
+            document.getElementById('messageBox').classList.remove('flex');
+            document.getElementById('messageBox').classList.add('hidden');
+        });
+
+        // User Auth logic (mock)
+        let isLoggedIn = false;
+
+        function updateAuthState(user) {
+            isLoggedIn = !!user;
+            const userNameDisplay = document.getElementById('userNameDisplay');
+            const profileDropdown = document.getElementById('profileDropdown');
+            const guestMenu = document.getElementById('guestMenu');
+            const userMenu = document.getElementById('userMenu');
+            const userStats = document.getElementById('userStats');
+            const userClaims = document.getElementById('userClaims');
+            const userQuickActions = document.getElementById('userQuickActions');
+            const heroSection = document.querySelector('section:first-of-type');
+            
+            if (isLoggedIn) {
+                userNameDisplay.textContent = user.name || 'John Doe';
+                guestMenu.classList.add('hidden');
+                userMenu.classList.remove('hidden');
+                userStats.classList.remove('hidden');
+                userClaims.classList.remove('hidden');
+                userQuickActions.classList.remove('hidden');
+                heroSection.classList.add('hidden');
+            } else {
+                userNameDisplay.textContent = 'Guest User';
+                guestMenu.classList.remove('hidden');
+                userMenu.classList.add('hidden');
+                userStats.classList.add('hidden');
+                userClaims.classList.add('hidden');
+                userQuickActions.classList.add('hidden');
+                heroSection.classList.remove('hidden');
+            }
+        }
+
+        // Mock login/signup logic
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            showMessageBox('Login Successful', 'You have been successfully logged in.');
+            document.getElementById('loginModal').classList.add('hidden');
+            updateAuthState({ name: 'John Doe' });
+        });
+        
+        document.getElementById('signupForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            showMessageBox('Account Created', 'Your account has been successfully created.');
+            document.getElementById('signupModal').classList.add('hidden');
+            updateAuthState({ name: document.getElementById('signupName').value });
+        });
+        
+        // Modal toggles
+        document.getElementById('profileBtn').addEventListener('click', () => {
+            document.getElementById('profileDropdown').classList.toggle('hidden');
+        });
+
+        document.getElementById('profileSignIn').addEventListener('click', () => {
+            document.getElementById('profileDropdown').classList.add('hidden');
+            document.getElementById('loginModal').classList.remove('hidden');
+        });
+
+        document.getElementById('profileSignUp').addEventListener('click', () => {
+            document.getElementById('profileDropdown').classList.add('hidden');
+            document.getElementById('signupModal').classList.remove('hidden');
+        });
+
+        document.getElementById('showSignupFromLogin').addEventListener('click', () => {
+            document.getElementById('loginModal').classList.add('hidden');
+            document.getElementById('signupModal').classList.remove('hidden');
+        });
+
+        document.getElementById('showLoginFromSignup').addEventListener('click', () => {
+            document.getElementById('signupModal').classList.add('hidden');
+            document.getElementById('loginModal').classList.remove('hidden');
+        });
+        
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            document.getElementById('profileDropdown').classList.add('hidden');
+            updateAuthState(null);
+        });
+
+        document.getElementById('closeLoginModal').addEventListener('click', () => {
+            document.getElementById('loginModal').classList.add('hidden');
+        });
+
+        document.getElementById('closeSignupModal').addEventListener('click', () => {
+            document.getElementById('signupModal').classList.add('hidden');
+        });
+
+        // Captcha logic
+        let captchaText = '';
+        function generateCaptcha() {
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            captchaText = '';
+            for (let i = 0; i < 6; i++) {
+                captchaText += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
+            document.getElementById('captchaDisplay').textContent = captchaText;
+        }
+
+        window.onload = () => {
+            const splashScreen = document.getElementById('splashScreen');
+            const mainDashboard = document.getElementById('mainDashboard');
+
+            setTimeout(() => {
+                splashScreen.style.opacity = '0';
+                setTimeout(() => {
+                    splashScreen.style.display = 'none';
+                    mainDashboard.classList.remove('hidden');
+                    updateAuthState(null);
+                    generateCaptcha();
+                }, 1000);
+            }, 2000);
+        };
+
+        // Claim form modal logic
+        const claimModal = document.getElementById('claimModal');
+        const newClaimBtn = document.getElementById('newClaimBtn');
+        const quickActionNewClaim = document.getElementById('quickActionNewClaim');
+        const closeModalBtn = document.getElementById('closeModal');
+        const cancelClaimBtn = document.getElementById('cancelClaimBtn');
+        const claimForm = document.getElementById('claimForm');
+        
+        function openClaimModal() {
+            if (!isLoggedIn) {
+                showMessageBox('Action Required', 'Please sign in or create an account to file a new claim.');
+                return;
+            }
+            claimModal.classList.remove('hidden');
+            claimModal.classList.add('flex');
+        }
+
+        function closeClaimModal() {
+            claimModal.classList.remove('flex');
+            claimModal.classList.add('hidden');
+            claimForm.reset();
+        }
+
+        newClaimBtn.addEventListener('click', openClaimModal);
+        quickActionNewClaim.addEventListener('click', openClaimModal);
+        closeModalBtn.addEventListener('click', closeClaimModal);
+        cancelClaimBtn.addEventListener('click', closeClaimModal);
+
+        claimForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const claimType = document.getElementById('claimType').value;
+            const policyNumber = document.getElementById('policyNumber').value;
+            const incidentDescription = document.getElementById('incidentDescription').value;
+            const incidentDate = document.getElementById('incidentDate').value;
+            const incidentTime = document.getElementById('incidentTime').value;
+            const claimAmount = document.getElementById('claimAmount').value;
+
+            // Simple validation
+            if (!claimType || !policyNumber || !incidentDescription || !incidentDate || !incidentTime || !claimAmount) {
+                showMessageBox('Validation Error', 'Please fill in all required fields.');
+                return;
+            }
+
+            // Simulate claim submission and UI update
+            const newClaimId = '#CLM-2024-' + Math.floor(Math.random() * 1000 + 100).toString();
+            const newClaimDate = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            
+            const statuses = [
+                { text: 'Under Review', bg: 'bg-yellow-100', color: 'text-yellow-800', progress: '30%' },
+                { text: 'Processing', bg: 'bg-blue-100', color: 'text-blue-800', progress: '60%' }
+            ];
+            const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+
+            const newRow = document.createElement('tr');
+            newRow.className = 'hover:bg-gray-50';
+            newRow.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">${newClaimId}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${claimType}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${newClaimDate}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">$${Number(claimAmount).toLocaleString()}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${randomStatus.bg} ${randomStatus.color} status-badge">
+                        ${randomStatus.text}
+                    </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="progress-bar h-2 rounded-full" style="--progress-width: ${randomStatus.progress}; width: ${randomStatus.progress};"></div>
+                    </div>
+                    <span class="text-xs text-gray-500 mt-1">${randomStatus.progress}</span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <button class="text-blue-600 hover:text-blue-900 mr-3">View</button>
+                    <button class="text-gray-400">Pending</button>
+                </td>
+            `;
+            document.getElementById('claimsTable').prepend(newRow);
+
+            // Update stats
+            const totalClaimsElement = document.querySelector('#userStats > div:first-child p:last-child');
+            totalClaimsElement.textContent = parseInt(totalClaimsElement.textContent) + 1;
+            
+            const pendingClaimsElement = document.querySelector('#userStats > div:nth-child(3) p:last-child');
+            if (randomStatus.text !== 'Approved') {
+                pendingClaimsElement.textContent = parseInt(pendingClaimsElement.textContent) + 1;
+            }
+
+            showMessageBox('Claim Submitted!', `Your claim with ID ${newClaimId} has been successfully submitted. You can track its progress in your dashboard.`);
+            closeClaimModal();
+        });
+    </script>
+</body>
+</html>
