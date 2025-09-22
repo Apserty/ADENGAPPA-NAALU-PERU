@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Insurance Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+        .container {
+            max-width: 900px;
+        }
+        .glass-bg {
+            background-color: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        .animated-gradient-border {
+            border: 2px solid transparent;
+            background-clip: padding-box, border-box;
+            background-origin: padding-box, border-box;
+            background-image: linear-gradient(to right, #0f172a, #0f172a), linear-gradient(to right, #3b82f6, #8b5cf6);
+            border-radius: 16px;
+            animation: pulse-border 2s infinite ease-in-out;
+        }
+        @keyframes pulse-border {
+            0% {
+                background-image: linear-gradient(to right, #0f172a, #0f172a), linear-gradient(to right, #3b82f6, #8b5cf6);
+            }
+            50% {
+                background-image: linear-gradient(to right, #0f172a, #0f172a), linear-gradient(to right, #8b5cf6, #3b82f6);
+            }
+            100% {
+                background-image: linear-gradient(to right, #0f172a, #0f172a), linear-gradient(to right, #3b82f6, #8b5cf6);
+            }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 flex items-center justify-center min-h-screen">
+
+    <div class="container mx-auto p-6 md:p-10 glass-bg">
+        <header class="text-center mb-10">
+            <h1 class="text-3xl md:text-5xl font-bold text-white mb-2">AI Insurance Analyzer</h1>
+            <p class="text-gray-400 text-sm md:text-base">Upload images of vehicle or property damage for instant analysis and fraud detection. Powered by Gemini.</p>
+        </header>
+
+        <main class="space-y-8">
+            <div class="p-6 md:p-8 rounded-xl bg-slate-800 border border-slate-700">
+                <div class="mb-6">
+                    <label for="claimType" class="block text-lg font-medium text-gray-300 mb-2">Select Claim Type</label>
+                    <select id="claimType" class="block w-full text-sm rounded-lg border-gray-600 bg-slate-700 text-white p-2.5">
+                        <option value="automobile">Automobile Claim</option>
+                        <option value="property">Property Claim</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="imageUpload" class="block text-lg font-medium text-gray-300 mb-4">Upload Images</label>
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <input type="file" id="imageUpload" multiple accept="image/*"
+                               class="block w-full text-sm text-slate-500
+                                      file:mr-4 file:py-2 file:px-4
+                                      file:rounded-full file:border-0
+                                      file:text-sm file:font-semibold
+                                      file:bg-violet-50 file:text-violet-700
+                                      hover:file:bg-violet-100" />
+                        <button id="addImageBtn" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-full text-sm hover:bg-blue-700 transition-colors flex-shrink-0">
+                            Add Image One by One
+                        </button>
+                    </div>
+                    <input type="file" id="singleImageUpload" accept="image/*" class="hidden" />
+                </div>
+            </div>
+
+            <div id="imagePreviewContainer" class="p-6 rounded-xl bg-slate-800 border border-slate-700 hidden">
+                <h3 class="text-lg font-medium text-gray-300 mb-4">Image Preview</h3>
+                <div id="imagePreviews" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
+            </div>
+
+            <div class="text-center">
+                <button id="analyzeBtn"
+                        class="px-8 py-3 rounded-full font-bold text-white
+                               bg-gradient-to-r from-blue-500 to-purple-600
+                               hover:from-blue-600 hover:to-purple-700
+                               transition-transform transform hover:scale-105
+                               focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50">
+                    Analyze Images
+                </button>
+            </div>
+
+            <div id="loadingIndicator" class="hidden text-center mt-8">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-t-4 border-blue-500 border-opacity-75"></div>
+                <p class="mt-4 text-gray-400">Analyzing images... this may take a moment.</p>
+            </div>
+
+            <div id="resultsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const imageUpload = document.getElementById('imageUpload');
+            const singleImageUpload = document.getElementById('singleImageUpload');
+            const addImageBtn = document.getElementById('addImageBtn');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const resultsContainer = document.getElementById('resultsContainer');
+            const claimTypeSelect = document.getElementById('claimType');
+            const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+            const imagePreviews = document.getElementById('imagePreviews');
+
+            const uploadedFilesArray = [];
+
+            // 1. Paste your Gemini API key here
+            // Get your key from Google AI Studio: https://aistudio.google.com/app/apikey
+            const API_KEY = "AIzaSyAcmqur8Xj2PnsaID8fMDR6zlLOWnNYv9c";
+            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
+            
+            // Handle alert messages using a custom modal
+            function showAlert(message) {
+                const modalHtml = `
+                    <div id="alertModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900 bg-opacity-75 backdrop-blur-sm transition-opacity duration-300 ease-in-out opacity-0">
+                        <div class="bg-gray-800 p-6 rounded-xl shadow-2xl border border-gray-700 w-full max-w-sm">
+                            <h3 class="text-lg font-bold text-white mb-2">Information</h3>
+                            <p class="text-gray-300 mb-4">${message}</p>
+                            <div class="flex justify-end">
+                                <button id="closeAlert" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">OK</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                const alertModal = document.getElementById('alertModal');
+                setTimeout(() => alertModal.style.opacity = '100', 10); // Fade in
+
+                document.getElementById('closeAlert').onclick = () => {
+                    alertModal.style.opacity = '0';
+                    setTimeout(() => alertModal.remove(), 300); // Fade out and remove
+                };
+            }
+
+            function updatePreviews() {
+                imagePreviews.innerHTML = '';
+                if (uploadedFilesArray.length > 0) {
+                    imagePreviewContainer.classList.remove('hidden');
+                    uploadedFilesArray.forEach(file => {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            const imgContainer = document.createElement('div');
+                            imgContainer.classList.add('relative');
+                            const img = document.createElement('img');
+                            img.src = e.target.result;
+                            img.alt = 'Image preview';
+                            img.classList.add('rounded-lg', 'h-24', 'w-full', 'object-cover');
+                            
+                            const deleteBtn = document.createElement('button');
+                            deleteBtn.classList.add('absolute', 'top-1', 'right-1', 'bg-red-600', 'text-white', 'rounded-full', 'p-1', 'w-6', 'h-6', 'flex', 'items-center', 'justify-center', 'text-xs', 'font-bold', 'hover:bg-red-700');
+                            deleteBtn.innerHTML = '&times;';
+                            deleteBtn.onclick = () => {
+                                const fileIndex = uploadedFilesArray.indexOf(file);
+                                if (fileIndex > -1) {
+                                    uploadedFilesArray.splice(fileIndex, 1);
+                                    updatePreviews();
+                                }
+                            };
+
+                            imgContainer.appendChild(img);
+                            imgContainer.appendChild(deleteBtn);
+                            imagePreviews.appendChild(imgContainer);
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                } else {
+                    imagePreviewContainer.classList.add('hidden');
+                }
+            }
+
+            // Handle multiple file upload
+            imageUpload.addEventListener('change', (e) => {
+                uploadedFilesArray.length = 0; // Clear existing files
+                const files = e.target.files;
+                if (files.length > 20) {
+                    showAlert('Please select a maximum of 20 images.');
+                    e.target.value = ''; // Clear file input
+                    return;
+                }
+                Array.from(files).forEach(file => uploadedFilesArray.push(file));
+                updatePreviews();
+            });
+
+            // Handle single file upload
+            addImageBtn.addEventListener('click', () => {
+                singleImageUpload.click();
+            });
+
+            singleImageUpload.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    if (uploadedFilesArray.length >= 20) {
+                        showAlert('You have reached the maximum limit of 20 images.');
+                        return;
+                    }
+                    uploadedFilesArray.push(file);
+                    updatePreviews();
+                }
+            });
+
+            analyzeBtn.addEventListener('click', async () => {
+                if (uploadedFilesArray.length === 0) {
+                    showAlert('Please select at least one image to analyze.');
+                    return;
+                }
+
+                resultsContainer.innerHTML = '';
+                loadingIndicator.classList.remove('hidden');
+
+                const imagePromises = uploadedFilesArray.map(file => {
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result.split(',')[1]);
+                        reader.onerror = error => reject(error);
+                        reader.readAsDataURL(file);
+                    });
+                });
+
+                try {
+                    const base64Images = await Promise.all(imagePromises);
+                    await processImages(base64Images, uploadedFilesArray);
+                } catch (error) {
+                    console.error('Error processing images:', error);
+                    showAlert('Failed to process images. Please try again.');
+                } finally {
+                    loadingIndicator.classList.add('hidden');
+                }
+            });
+
+            async function processImages(base64Images, files) {
+                const claimType = claimTypeSelect.value;
+
+                for (let i = 0; i < base64Images.length; i++) {
+                    const base64Data = base64Images[i];
+                    const file = files[i];
+
+                    const prompt = `
+                        Analyze the following image for a claim. The output should be a JSON object.
+
+                        1.  **Subject:** Identify the primary subject. Is it a vehicle or a property? Provide a one-word response: "Automobile" or "Property".
+                        2.  **Damage Summary:** Provide a crisp, bulleted list of the major damaged parts. If no damages are present, return an empty array.
+                        3.  **Damage Percentage:** Provide a numerical percentage (from 0 to 100) of the total damage, where 0 is no damage and 100 is total loss.
+                        4.  **Estimated Cost:** Provide a plausible, estimated repair cost in Indian Rupees (₹). Give a range, for example, "₹50,000 - ₹75,000". If no damages are found, use "N/A".
+                        5.  **Fraud Detection:** Is this a real photograph of a physical object, or does it appear to be a cartoon, a drawing, photoshopped, blurred, or AI-generated?
+                        6.  **Fraud Percentage:** Provide a numerical percentage (from 0 to 100) indicating the likelihood of fraud, where 0 is no fraud detected and 100 is high certainty of fraud.
+
+                        Output a JSON object with the following schema:
+                        {
+                            "subject": "string",
+                            "damage_summary": "array",
+                            "damage_percentage": "number",
+                            "estimated_cost": "string",
+                            "fraud_detection": "string",
+                            "fraud_percentage": "number"
+                        }
+                    `;
+                    
+                    const payload = {
+                        contents: [
+                            {
+                                role: "user",
+                                parts: [
+                                    { text: prompt },
+                                    {
+                                        inlineData: {
+                                            mimeType: file.type,
+                                            data: base64Data
+                                        }
+                                    }
+                                ]
+                            }
+                        ],
+                        generationConfig: {
+                            responseMimeType: "application/json",
+                            responseSchema: {
+                                type: "OBJECT",
+                                properties: {
+                                    "subject": { "type": "STRING" },
+                                    "damage_summary": { 
+                                        "type": "ARRAY",
+                                        "items": { "type": "STRING" }
+                                    },
+                                    "damage_percentage": { "type": "NUMBER" },
+                                    "estimated_cost": { "type": "STRING" },
+                                    "fraud_detection": { "type": "STRING" },
+                                    "fraud_percentage": { "type": "NUMBER" }
+                                },
+                                "propertyOrdering": [
+                                    "subject",
+                                    "damage_summary",
+                                    "damage_percentage",
+                                    "estimated_cost",
+                                    "fraud_detection",
+                                    "fraud_percentage"
+                                ]
+                            }
+                        }
+                    };
+
+                    try {
+                        const response = await fetch(API_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        const result = await response.json();
+                        const analysisJsonString = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (analysisJsonString) {
+                            const analysis = JSON.parse(analysisJsonString);
+                            
+                            // Check for domain mismatch
+                            if (analysis.subject.toLowerCase() !== claimType) {
+                                displayMismatchError(file, analysis.subject, claimType);
+                            } else {
+                                displayResults(file, base64Data, analysis);
+                            }
+
+                        } else {
+                            throw new Error("Invalid response format from API");
+                        }
+                    } catch (error) {
+                        console.error(`Error analyzing image ${file.name}:`, error);
+                        displayError(file, 'Failed to get a valid analysis from the AI. Please try a different image.', 'AI Error');
+                    }
+                }
+            }
+            
+            function displayMismatchError(file, detectedSubject, selectedClaim) {
+                const cardHtml = `
+                    <div class="rounded-xl overflow-hidden shadow-lg p-4 space-y-4 bg-red-800 bg-opacity-30 border border-red-700 transition-all duration-300 transform hover:scale-[1.01]">
+                        <img src="${URL.createObjectURL(file)}" alt="${file.name}" class="rounded-lg w-full h-48 object-cover mb-4">
+                        <div class="text-center text-red-300">
+                            <p class="text-xl font-bold">CLAIM DENIED</p>
+                            <p class="text-sm mt-2">The uploaded image is a **${detectedSubject}**, but you selected **${selectedClaim} Claim**.</p>
+                            <p class="text-xs mt-2 text-gray-400">Please ensure the claim type matches your uploaded images.</p>
+                        </div>
+                    </div>
+                `;
+                resultsContainer.insertAdjacentHTML('beforeend', cardHtml);
+            }
+
+            function displayResults(file, base64Data, analysis) {
+                const fraudThreshold = 50; // Threshold for displaying "FRAUD DETECTED"
+                const isFraud = analysis.fraud_percentage > fraudThreshold;
+                
+                const cardHtml = `
+                    <div class="rounded-xl overflow-hidden shadow-lg p-4 space-y-4 bg-slate-800 border border-slate-700 transition-all duration-300 transform hover:scale-[1.01]">
+                        <img src="data:${file.type};base64,${base64Data}" alt="${file.name}" class="rounded-lg w-full h-48 object-cover mb-4">
+                        <h3 class="text-xl font-bold text-white text-center">${analysis.subject}</h3>
+                        ${isFraud ? 
+                            `<div class="mt-4 text-center">
+                                <span class="bg-red-600 text-white font-bold py-2 px-4 rounded-full text-sm">${analysis.fraud_percentage}% FRAUD DETECTED</span>
+                            </div>` :
+                            `<div class="space-y-4 mt-2">
+                                <div class="p-4 rounded-lg bg-gray-700">
+                                    <h4 class="font-bold text-gray-300">Damage Summary</h4>
+                                    <ul class="list-disc list-inside mt-2 text-sm text-gray-200">
+                                        ${analysis.damage_summary.map(item => `<li>${item}</li>`).join('')}
+                                    </ul>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="p-4 rounded-lg bg-blue-700 text-center">
+                                        <h4 class="font-bold text-gray-200">Est. Cost</h4>
+                                        <p class="text-lg font-semibold text-white mt-1">${analysis.estimated_cost}</p>
+                                    </div>
+                                    <div class="p-4 rounded-lg bg-violet-700 text-center">
+                                        <h4 class="font-bold text-gray-200">Damage %</h4>
+                                        <p class="text-lg font-semibold text-white mt-1">${analysis.damage_percentage}%</p>
+                                    </div>
+                                </div>
+                                <div class="mt-4 text-center">
+                                    <span class="bg-green-600 text-white font-bold py-2 px-4 rounded-full text-sm">Real Image (${analysis.fraud_percentage}% Fraud)</span>
+                                </div>
+                                <p class="text-center text-sm text-gray-400 mt-4">Note: The analysed values are estimated, not accurate. An agent will contact you soon after a review.</p>
+                            </div>`
+                        }
+                    </div>
+                `;
+                resultsContainer.insertAdjacentHTML('beforeend', cardHtml);
+            }
+
+            function displayError(file, message, title) {
+                 const cardHtml = `
+                    <div class="rounded-xl overflow-hidden shadow-lg p-4 space-y-4 bg-gray-800 border border-gray-700">
+                        <img src="${URL.createObjectURL(file)}" alt="${file.name}" class="rounded-lg w-full h-48 object-cover mb-4">
+                        <div class="text-center text-red-400">
+                            <p class="font-bold">${title}</p>
+                            <p class="text-sm">${message}</p>
+                        </div>
+                    </div>
+                `;
+                resultsContainer.insertAdjacentHTML('beforeend', cardHtml);
+            }
+        });
+    </script>
+</body>
+</html>
